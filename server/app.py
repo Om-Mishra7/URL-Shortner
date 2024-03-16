@@ -116,7 +116,7 @@ async def shorten(url: str, seconds_to_expire: int = 0, authorization_token: str
 
         urls_collection.insert_one({
             "url_id": url_id.lower(),
-            "url": url.strip().lower(),
+            "url": url.strip(),
             "expires_at": seconds_to_expire,
             "created_at": int(time.time()),
             "number_of_redirects": 0
