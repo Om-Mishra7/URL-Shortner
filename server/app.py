@@ -16,7 +16,11 @@ db = mongodb_client["url-shortener"]
 urls_collection = db["urls"]
 
 # FastAPI app
-app = FastAPI()
+app = FastAPI(app_name="URL Shortener API | ProjectRexa", version="0.1.0", summary="This API allows users to shorten long URLs into shorter, more manageable URLs. It also provides functionality to retrieve statistics for shortened URLs.",  contact={
+        "name": "Om Mishra",
+        "url": "https://om-mishra.com",
+        "email": "om@om-mishra.com"
+    })
 
 # Middleware to add process time header
 @app.middleware("http")
