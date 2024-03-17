@@ -16,11 +16,12 @@ db = mongodb_client["url-shortener"]
 urls_collection = db["urls"]
 
 # FastAPI app
-app = FastAPI(app_name="URL Shortener API | ProjectRexa", version="0.1.0", summary="This API allows users to shorten long URLs into shorter, more manageable URLs. It also provides functionality to retrieve statistics for shortened URLs.",  contact={
+app = FastAPI(app_name="URL Shortener API | ProjectRexa", version="0.1.0", summary="This API allows users to shorten long URLs into shorter, more manageable URLs. It also provides functionality to retrieve statistics for shortened URLs.", title="URL Shortener API | ProjectRexa", description="This API allows users to shorten long URLs into shorter, more manageable URLs. It also provides functionality to retrieve statistics for shortened URLs.", docs_url="/docs", redoc_url=None, openapi_url="/openapi.json",  contact={
         "name": "Om Mishra",
         "url": "https://om-mishra.com",
         "email": "om@om-mishra.com"
     })
+
 
 # Middleware to add process time header
 @app.middleware("http")
@@ -76,7 +77,13 @@ async def redirect(url_id: str):
         
         urls_collection.update_one({"url_id": url_id}, {"$inc": {"number_of_redirects": 1}})
 
-        return RedirectResponse(url=original_url["url"])
+        # Add headers to the response
+        response = RedirectResponse(url=original_url["url"])
+        response.headers["X-Original-URL"] = original_url["url"]
+        response.headers["X-Redirect-URL"] = f"https://url.om-mishra.com/{url_id.lower()}"
+        response.headers["Cache-Control"] = f"max-age={int(original_url['expires_at']) if original_url['expires_at'] > 0 else 0}, public"
+        return response
+    
     except Exception as e:
         return JSONResponse(content={
             "status": "error",
@@ -86,7 +93,7 @@ async def redirect(url_id: str):
 
 # Shorten URLs
 @app.get("/api/v1/shorten")
-async def shorten(url: str, seconds_to_expire: int = 0, authorization_token: str = None):
+async def shorten(url: str, seconds_to_expire: int = 0, authorization_token: str = None, request: Request = None):
     try:
         if not url:
             return JSONResponse(content={
@@ -119,7 +126,11 @@ async def shorten(url: str, seconds_to_expire: int = 0, authorization_token: str
             "url": url.strip(),
             "expires_at": seconds_to_expire,
             "created_at": int(time.time()),
-            "number_of_redirects": 0
+            "number_of_redirects": 0,
+            "created_by_user_metadata": {
+                "ip": request.client.host,
+                "user_agent": request.headers.get("user-agent")
+            }
         })
 
         shortened_url = f"https://url.om-mishra.com/{url_id.lower()}"
