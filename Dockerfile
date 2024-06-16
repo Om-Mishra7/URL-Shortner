@@ -10,4 +10,4 @@ COPY . .
 
 WORKDIR /app/server
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5002", "app:app"]
+CMD ["python", "app.py"]
