@@ -3,6 +3,7 @@ import uuid
 import time
 import dotenv
 import secrets
+import uvicorn
 from pymongo import MongoClient
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -220,3 +221,6 @@ async def health():
             "message": f"An error occurred: {str(e)}",
             "request_id": str(uuid.uuid4())
         })
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5002)
