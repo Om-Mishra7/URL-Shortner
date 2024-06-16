@@ -1,4 +1,4 @@
 python-dotenv
-uvicorn
+gunicorn
 fastapi
 pymongo
